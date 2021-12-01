@@ -1,0 +1,172 @@
+---
+title: "Final project"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+bibliography: bibliography.bib
+author: Natalia Sarabia Vásquez
+header-includes:
+   - \usepackage{float}
+   - \usepackage{hyperref}
+   - \usepackage{tcolorbox}
+   - \usepackage{bbm}
+   - \hypersetup{colorlinks, 
+                 urlcolor = blue,
+                 linkcolor = black, 
+                 citecolor = black}
+output: 
+  pdf_document:
+    citation_package: natbib
+    number_sections: true
+---
+  
+```{r setup, echo = FALSE, warning = FALSE, message = FALSE}
+# Default setting
+knitr::opts_chunk$set(
+  echo = TRUE,  # don't print the code chunk
+  warning = FALSE,  # don't print warnings
+  message = FALSE,  # don't print messages
+  fig.align = "center",  # always align figure in center
+  fig.pos = "H",  # always plot figure at the exact location of the code chunk
+  cache = FALSE)
+
+# load useful libraries
+library(knitr)
+library(dplyr)
+```
+
+# Project
+Generate chromosomes and set the population matrix
+
+```{r, eval = FALSE, echo = FALSE}
+#data_names <- names(X)
+#variables <- apply(X,1,function(x) data_names[grep(1,as.vector(x))])
+#formulas <- apply
+
+# get_formulas <- function(X, generation){
+#   data_names <- names(X)
+#   variables <- apply(X,1,find_genes,data_names)
+#   formulas <- lapply(variables,set_formulas)
+#   return(formulas)
+# }
+
+
+# data_names <- names(x)
+# 
+# as.formula(paste("y ~ ", paste(xnam, collapse= "+")))
+
+data_adult <-read.csv("https://raw.githubusercontent.com/guru99-edu/R-Programming/master/adult.csv")
+head(data_adult)
+
+x <- data.frame(runif(100,0,1),runif(100,0,1))
+y <- runif(100,0,1)
+
+z <- as.data.frame(matrix(c(1,0,0,1,0,0,1,0,1,1,1,1,0,0,1,0), ncol=7,nrow=2))
+le <- c("A","B","C","D","E","F","G","H")
+var <- apply(z,1,function(x) le[grep(1,as.vector(x))])
+
+le[grep(1,z)]
+
+AIC(lm(y ~ x))
+AIC(glm(y ~ .))
+
+fitness <- function(x, Y, ){
+  return(AIC(glm(y~X)))
+}
+
+
+# Fitness function 
+# Drawbacks
+# I have some repetitions, should add a while, or delete repetitions?
+# I am not letting the user to choose the population size, I am using theoretical best numbers
+
+#names(gen) <- dput(paste0('gen_', seq(1,chromosome_length,1)))
+       
+#names(gen) <- cat(paste(paste0('"gen_', seq(1,chromosome_length,1), '"'), collapse = ", "),"\n")
+#names(gen) <- c("gen1","gen2","gen3", "gen_4", "gen_5", "gen_6")
+
+```
+
+
+# Creating the generation
+```{r}
+
+# Generate the genes and set the chromosomes:
+create_population <- function(chromosome_length, population_size){
+  n <- chromosome_length * population_size
+  chromosome <- as.vector(sample(0:1, n, replace=TRUE))
+  population <- as.data.frame(matrix(chromosome, nrow = population_size, ncol = chromosome_length))
+  names(population) <- dput(paste0('gen_', seq(1,chromosome_length,1)))
+  return(population)
+}
+
+```
+
+# Computing the fitness
+```{r}
+# Function to identify the genes that would be active in each model given a chromosome:
+find_genes <- function(chromosome, variables_names){
+  variables <- variables_names[grep(1,as.vector(chromosome))]
+  return(variables)
+}
+
+# Function to construct the formulas given the active genes of a chromosome:
+set_formulas <- function(active_genes, name_y){
+  formulas <- as.formula(paste(name_y, paste(active_genes, sep = "", collapse = " + "), sep = " ~ "))
+  return(formulas)
+}
+
+# Function to compute the fitness (AIC) given a formula and a dataset
+# By default, it will fit a linear regression. Although, it can receive the parameters 
+# for a generalized linear model
+fitness <- function(formula, data, ...){
+   fitness <- AIC(glm(formula = formula, data = data, ...))
+   return(fitness)
+}
+
+# Compute the fitness of an entire generation:
+# The result is sort by the fittest individual to the least fit
+get_fitness <- function(X, name_y, generation){
+  data_names <- names(X)[!names(X) %in% c(name_y)]
+  variables <- apply(generation, 1, find_genes, data_names)
+  formulas <- lapply(variables, set_formulas, name_y)
+  fitness <- lapply(formulas, fitness, X)
+  return(unlist(fitness))
+}
+
+# Be careful, this returns your generation sorted by fitness
+gather_fitness_generation <- function(generation,fitness_scores){
+  gathered <- cbind(generation,fitness_scores) %>%
+  arrange(desc(fitness_scores))
+  return(gathered)
+}
+```
+
+# Test the funtion
+Data to try out the code:
+```{r}
+
+set.seed(123)
+
+# Number of genes per chromosome: number of  covariates in a linear model
+chromosome_length <- 10
+
+# Population size 
+# The paper recommends fo binary encoding of chromosomes to choose P to satisfy $C \leq P \leq 2C$
+population_size <- sample(chromosome_length:(2*chromosome_length), 1, replace=TRUE)
+
+my_generation <- create_population(chromosome_length, population_size)
+head(my_generation)
+
+x <- as.data.frame(matrix(runif(100*(chromosome_length+1),0,1),ncol=(chromosome_length+1),nrow=100))
+names(x) <- letters[1:(chromosome_length+1)]
+head(x)
+
+fitness_scores <- get_fitness(x,"a",my_generation)
+head(fitness_scores)
+
+my_generation_info <- gather_fitness_generation(my_generation, fitness_scores)
+head(my_generation_info)
+
+# fit one by lm
+AIC(lm(a ~ f+h+j+k, data = x )) 
+
+```
