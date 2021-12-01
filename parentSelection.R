@@ -6,6 +6,16 @@ n <- 100
 test_matrix <- round(matrix(runif(m*n), n, m))
 fitness <- c(runif(n))
 
+
+### INPUT:
+# population: a matrix containing the chromosomes 
+# fitness: a vector of the corresponding fitness of the chromosomes
+# num_partitions: number of partitions in the matrix. Defaults to 
+#                 the number of chromosomes divided by 3
+### OUTPUT:
+# A matrix with containing the best chromosomes from each partition.
+# The number of rows is equal to the number of partitions. Adds the 
+# fitness to the matrix as the last column (at column index: ncol(population)+1)
 tournamentSelection <- function(population, fitness, num_partitions=floor(nrow(population)/3)) {
   columns <- ncol(population)
   rows <- nrow(population)
