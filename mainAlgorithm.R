@@ -1,4 +1,3 @@
-library(knitr)
 library(dplyr)
 
 
@@ -47,8 +46,8 @@ get_fitness <- function(X, name_y, generation){
 
 # Be careful, this returns your generation sorted by fitness
 gather_fitness_generation <- function(generation,fitness_scores){
-  gathered <- cbind(generation,fitness_scores) %>%
-    arrange(desc(fitness_scores))
+  gathered <- cbind(generation,fitness_scores) # %>%
+    # arrange(desc(fitness_scores))
   return(gathered)
 }
 
@@ -144,26 +143,37 @@ mutate <- function(chromosomes, mutateProbability = 0.01) {
 
 
 
-### Testing
+### Full algorithm
 
 set.seed(123)
 
-mainAlgorithm <- function(chromosome_length = 10,
-                          population_size = sample(chromosome_length:(2*chromosome_length), 1, replace=TRUE),
-                          data,
+mainAlgorithm <- function(data,
+                          chromosomes,
                           predictor,
                           num_partitions = floor(population_size/3),
                           mutateProbability = 0.01                     
                           ) {
   
-  my_generation <- create_population(chromosome_length, population_size)
+  fitness_scores <- get_fitness(data, predictor, chromosomes)
   
-  fitness_scores <- get_fitness(data, predictor, my_generation)
-  
-  my_generation_info <- gather_fitness_generation(my_generation, fitness_scores)
+  my_generation_info <- gather_fitness_generation(chromosomes, fitness_scores)
   
   parentsA <- tournamentSelection(as.matrix(my_generation_info), num_partitions)
+  
+  # Run tournament selection 
+  for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
+    parentsA <- rbind(parentsA,
+      tournamentSelection(as.matrix(my_generation_info), num_partitions))
+  }
+  
+  
   parentsB <- tournamentSelection(as.matrix(my_generation_info), num_partitions)
+  
+  # Run tournament selection 
+  for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
+    parentsB <- rbind(parentsB,
+                      tournamentSelection(as.matrix(my_generation_info), num_partitions))
+  }
   
   child <- crossover(parentsA, parentsB)
   
@@ -172,34 +182,35 @@ mainAlgorithm <- function(chromosome_length = 10,
   return(mutated)
 }
 
-mainAlgorithm(15, 30, x, "a", 2, 0.05)
+# Test mainAlgorithm
+chromosomes <- create_population(10,30)
 
-# Number of genes per chromosome: number of  covariates in a linear model
-chromosome_length <- 10
-
-# Population size 
-# The paper recommends fo binary encoding of chromosomes to choose P to satisfy $C \leq P \leq 2C$
-population_size <- sample(chromosome_length:(2*chromosome_length), 1, replace=TRUE)
-
-my_generation <- create_population(chromosome_length, population_size)
-head(my_generation)
-
-x <- as.data.frame(matrix(runif(100*(chromosome_length+1),0,1),ncol=(chromosome_length+1),nrow=100))
-names(x) <- letters[1:(chromosome_length+1)]
-head(x)
-
-fitness_scores <- get_fitness(x,"a",my_generation)
-head(fitness_scores)
-
-my_generation_info <- gather_fitness_generation(my_generation, fitness_scores)
+mainAlgorithm(chromosomes, data = x, 
+              predictor = "a", num_partitions = 15, mutateProbability = 0.05)
 
 
-# fit one by lm
-AIC(lm(a ~ f+h+j+k, data = x )) 
+### Iterated Algorithm
 
-parentsA <- tournamentSelection(as.matrix(my_generation_info))
-parentsB <- tournamentSelection(as.matrix(my_generation_info))
+loopAlgorithm <- function(num_iterations,
+                          data, 
+                          chromosome_length = ncol(data), 
+                          population_size = sample(chromosome_length:(2*chromosome_length), 1, replace=TRUE),
+                          predictor,
+                          num_partitions = floor(population_size/3),
+                          mutateProbability = 0.01) {
+  
+  chromosomes <- create_population(chromosome_length, population_size)
+  
+  for (i in 1:num_iterations) {
+    chromosomes <- mainAlgorithm(data, chromosomes, predictor, num_partitions, mutateProbability)
+  }
+  return(chromosomes)
+}
 
-child <- crossover(parentsA, parentsB)
+# Test loopAlgorithm
+final <- loopAlgorithm(num_iterations = 100, chromosome_length = 10, population_size = 30, data = x, 
+              predictor = "a", num_partitions = 15, mutateProbability = 0.05)
 
-mutate(child)
+AIC(lm(a ~ b+c+e+f+g+h+j+k, data = x )) 
+
+
