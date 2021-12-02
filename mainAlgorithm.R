@@ -154,22 +154,21 @@ mainAlgorithm <- function(data,
                           mutateProbability = 0.01                     
                           ) {
   
+  # Generate fitness scores and combine with chromosomes matrix
   fitness_scores <- get_fitness(data, predictor, chromosomes)
   
   my_generation_info <- gather_fitness_generation(chromosomes, fitness_scores)
   
+  ## Create parents A and B
   parentsA <- tournamentSelection(as.matrix(my_generation_info), num_partitions)
-  
-  # Run tournament selection 
+  # Run tournament selection multiple times to keep number of individuals the 
+  # same over each generation
   for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
     parentsA <- rbind(parentsA,
       tournamentSelection(as.matrix(my_generation_info), num_partitions))
   }
   
-  
   parentsB <- tournamentSelection(as.matrix(my_generation_info), num_partitions)
-  
-  # Run tournament selection 
   for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
     parentsB <- rbind(parentsB,
                       tournamentSelection(as.matrix(my_generation_info), num_partitions))
@@ -182,7 +181,15 @@ mainAlgorithm <- function(data,
   return(mutated)
 }
 
-# Test mainAlgorithm
+### Test mainAlgorithm
+
+# Create data
+chromosome_length <- 10
+population_size <- sample(chromosome_length:(2*chromosome_length), 1, replace=TRUE)
+x <- as.data.frame(matrix(runif(100*(chromosome_length+1),0,1),ncol=(chromosome_length+1),nrow=100))
+names(x) <- letters[1:(chromosome_length+1)]
+
+# Create first generation
 chromosomes <- create_population(10,30)
 
 mainAlgorithm(chromosomes, data = x, 
@@ -199,18 +206,22 @@ loopAlgorithm <- function(num_iterations,
                           num_partitions = floor(population_size/3),
                           mutateProbability = 0.01) {
   
+  # Create first generation
   chromosomes <- create_population(chromosome_length, population_size)
   
+  # Repeat the algorithm
   for (i in 1:num_iterations) {
     chromosomes <- mainAlgorithm(data, chromosomes, predictor, num_partitions, mutateProbability)
   }
+  
   return(chromosomes)
 }
 
 # Test loopAlgorithm
-final <- loopAlgorithm(num_iterations = 100, chromosome_length = 10, population_size = 30, data = x, 
+final <- loopAlgorithm(num_iterations = 10, chromosome_length = 10, population_size = 30, data = x, 
               predictor = "a", num_partitions = 15, mutateProbability = 0.05)
 
+# Check fitness score
 AIC(lm(a ~ b+c+e+f+g+h+j+k, data = x )) 
 
 
