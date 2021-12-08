@@ -73,7 +73,7 @@ tournamentSelection <- function(population, num_partitions=floor(nrow(population
   
   partitions <- matrix_partition(combined_matrix, num_partitions)
   selectedParents <- t(sapply(partitions, function(x) {
-    x[which.max(x[,columns + 1]),]
+    x[which.min(x[,columns + 1]),]
   }))
   
   return(selectedParents[,1:(columns)])
@@ -222,6 +222,6 @@ final <- loopAlgorithm(num_iterations = 10, chromosome_length = 10, population_s
               predictor = "a", num_partitions = 15, mutateProbability = 0.05)
 
 # Check fitness score
-AIC(lm(a ~ b+c+e+f+g+h+j+k, data = x )) 
+ AIC(lm(a ~ c+f+i, data = x )) 
 
 
