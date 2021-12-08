@@ -214,12 +214,16 @@ loopAlgorithm <- function(num_iterations,
     chromosomes <- mainAlgorithm(data, chromosomes, predictor, num_partitions, mutateProbability)
   }
   
+  # Return a list with the best individual, their score, and full matrix
   return(chromosomes)
 }
 
 # Test loopAlgorithm
 final <- loopAlgorithm(num_iterations = 10, chromosome_length = 10, population_size = 30, data = x, 
               predictor = "a", num_partitions = 15, mutateProbability = 0.05)
+scoresTest <- get_fitness(x, "a", final)
+final2 <- cbind(final, scoresTest)
+final3 <- final2[order(final2[,ncol(final2)], decreasing=FALSE), ]
 
 # Check fitness score
  AIC(lm(a ~ c+f+i, data = x )) 
