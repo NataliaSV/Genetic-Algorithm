@@ -22,6 +22,7 @@ crossover <- function(parentsA, parentsB) {
   for (i in 1:nrow(parentsA)) {
     childMatrix[i,] <- breedSingle(parentsA[i,], parentsB[i,], splitLocation[i])
   }
+  
   return(childMatrix)
 }
 
