@@ -2,6 +2,7 @@
 ### Mutation
 ### Jonathan Ling
 
+library(testthat)
 
 mutate <- function(chromosomes, mutateProbability = 0.01) {
   # Inputs: 
@@ -22,6 +23,3 @@ mutate <- function(chromosomes, mutateProbability = 0.01) {
   return(mutatedChromosomes)
 }
 
-### Test Case
-# testMat <- matrix(sample(c(0,1), 200, replace = T),10,20)
-# testMat - mutate(testMat)

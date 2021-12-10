@@ -68,7 +68,7 @@ gather_fitness_generation <- function(generation,fitness_scores){
 # A matrix with containing the best chromosomes from each partition.
 # The number of rows is equal to the number of partitions. Adds the 
 # fitness to the matrix as the last column (at column index: ncol(population)+1)
-tournamentSelection <- function(population, num_partitions=floor(nrow(population)/3)) {
+tournament_selection <- function(population, num_partitions=floor(nrow(population)/3)) {
   columns <- ncol(population) - 1
   rows <- nrow(population)
   
@@ -78,11 +78,11 @@ tournamentSelection <- function(population, num_partitions=floor(nrow(population
   
   
   partitions <- matrix_partition(combined_matrix, num_partitions)
-  selectedParents <- t(sapply(partitions, function(x) {
+  selected_parents <- t(sapply(partitions, function(x) {
     x[which.min(x[,columns + 1]),]
   }))
   
-  return(selectedParents[,1:(columns)])
+  return(selected_parents[,1:(columns)])
 }
 
 
@@ -101,50 +101,73 @@ shuffle_matrix <- function(matrix) {
 }
 
 ### Crossover
-
-crossover <- function(parentsA, parentsB) {
+# Default crossover function; user can provide any crossover function that
+#   takes in the two parent matrices and outputs the resulting child matrix.
+crossover <- function(parents_A, parents_B, num_split = 1) {
   
   # Create vector of where to split each chromosome
   # Random selection
-  splitLocation <- sample(1:(ncol(parentsA) - 1),
-                          size = nrow(parentsA), replace = T)
+  split_location <- matrix(rep(0, num_split * nrow(parents_A)), 
+                           nrow = nrow(parents_A), ncol = num_split)
+  for (i in 1:nrow(parents_A)) {
+    split_location[i,] <- sort(sample(1:(ncol(parents_A) - 1),
+                                      size = num_split, replace = F))
+  }
+  split_location <- cbind(rep(0,nrow(parents_A)), split_location, 
+                          rep(ncol(parents_A), nrow(parents_A)))
   
-  # Combine genes left of the split location from parent A with
-  #   genes right of the split location from parent B
-  breedSingle <- function(A, B, splitIndex) {
-    child <- c(A[1:splitIndex], B[(splitIndex + 1):length(B)])
+  ### Combine genes based on split location from parents A and B
+  # Pick genes from alternating parents
+  select_genes <- function(index, split_indices, A, B, random_remainder = 1) {
+    if (index %% 2 == random_remainder) {
+      selected_gene <- A[(split_indices[index] + 1):(split_indices[index+1])]
+    }
+    else {
+      selected_gene <- B[(split_indices[index] + 1):(split_indices[index+1])]
+    }
+  }
+  
+  # Function to make a single child from two parents
+  breed_single <- function(A, B, split_indices) {
+    # Randomize which parent is selected from first when performing crossover
+    remainder <- sample(c(0,1), 1)
+    child <- unlist(sapply(1:(length(split_indices) - 1), select_genes, 
+                           split_indices, A, B, remainder))
     return(child)
   }
   
-  # Apply breedSingle to every pair of parents
-  childMatrix <- matrix(rep(0, nrow(parentsA) * ncol(parentsA)),
-                        nrow(parentsA), ncol(parentsA))
-  for (i in 1:nrow(parentsA)) {
-    childMatrix[i,] <- breedSingle(parentsA[i,], parentsB[i,], splitLocation[i])
+  # Apply breed_single to every pair of parents
+  child_matrix <- matrix(rep(0, nrow(parents_A) * ncol(parents_A)),
+                         nrow(parents_A), ncol(parents_A))
+  for (i in 1:nrow(parents_A)) {
+    child_matrix[i,] <- breed_single(parents_A[i,], 
+                                     parents_B[i,], 
+                                     split_location[i,])
   }
-  
-  return(childMatrix)
+
+  return(child_matrix)
 }
 
 ### Mutate
 
-mutate <- function(chromosomes, mutateProbability = 0.01) {
+mutate <- function(chromosomes, mutate_probability = 0.01) {
   # Inputs: 
   #   chromosomes: matrix of chromosomes
-  #   mutateProbability: the probability for each gene to mutate. Default
+  #   mutate_probability: the probability for each gene to mutate. Default
   #                       is 1%.
   # Output:
   #   Matrix of mutated chromosomes
   
   # Mutate by subtracting 1 from the element and taking the absolute value
   #   Changes 0 to 1, changes 1 to 0
-  # Generate mutation matrix from Bernoulli(mutateProbablity) distribution
-  mutatedChromosomes <- abs(chromosomes - 
-                              matrix(rbinom(nrow(chromosomes) * ncol(chromosomes),
-                                            1, mutateProbability), 
-                                     nrow = nrow(chromosomes), ncol = ncol(chromosomes))
+  # Generate mutation matrix from Bernoulli(mutate_probablity) distribution
+  mutated_chromosomes <- abs(chromosomes - 
+                            matrix(rbinom(nrow(chromosomes) * ncol(chromosomes),
+                                            1, mutate_probability), 
+                                    nrow = nrow(chromosomes),
+                                    ncol = ncol(chromosomes))
   )
-  return(mutatedChromosomes)
+  return(mutated_chromosomes)
 }
 
 
@@ -153,10 +176,11 @@ mutate <- function(chromosomes, mutateProbability = 0.01) {
 
 set.seed(123)
 
-mainAlgorithm <- function(data,
+main_algorithm <- function(data,
                           chromosomes,
                           predictor,
                           num_partitions = floor(population_size/3),
+                          genetic_operator = crossover,
                           mutateProbability = 0.01,
                           FUN = AIC,
                           ...
@@ -168,41 +192,46 @@ mainAlgorithm <- function(data,
   my_generation_info <- gather_fitness_generation(chromosomes, fitness_scores)
   
   ## Create parents A and B
-  parentsA <- tournamentSelection(as.matrix(my_generation_info), num_partitions)
+  parents_A <- tournament_selection(as.matrix(my_generation_info), num_partitions)
   # Run tournament selection multiple times to keep number of individuals the 
   # same over each generation
   for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
-    parentsA <- rbind(parentsA,
-      tournamentSelection(as.matrix(my_generation_info), num_partitions))
+    parents_A <- rbind(parents_A,
+      tournament_selection(as.matrix(my_generation_info), num_partitions))
   }
   
-  parentsB <- tournamentSelection(as.matrix(my_generation_info), num_partitions)
+  parents_B <- tournament_selection(as.matrix(my_generation_info), num_partitions)
   for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
-    parentsB <- rbind(parentsB,
-                      tournamentSelection(as.matrix(my_generation_info), num_partitions))
+    parents_B <- rbind(parents_B,
+                      tournament_selection(as.matrix(my_generation_info), 
+                                           num_partitions))
   }
   
-  child <- crossover(parentsA, parentsB)
+  child <- genetic_operator(parents_A, parents_B, ...)
   
-  mutated <- mutate(child, mutateProbability)
+  mutated <- mutate(child, mutate_probability)
   
   return(mutated)
 }
 
-### Test mainAlgorithm
+### Test main_algorithm
 
 # Create data
 chromosome_length <- 10
-population_size <- sample(chromosome_length:(2*chromosome_length), 1, replace=TRUE)
-x <- as.data.frame(matrix(runif(100*(chromosome_length+1),0,1),ncol=(chromosome_length+1),nrow=100))
+population_size <- sample(chromosome_length:(2*chromosome_length),
+                          1, replace=TRUE)
+x <- as.data.frame(matrix(runif(100*(chromosome_length+1),0,1),
+                          ncol=(chromosome_length+1),nrow=100))
 names(x) <- letters[1:(chromosome_length+1)]
 
 # Create first generation
 chromosomes <- create_population(10,30)
 
-# running the default statistic
-mainAlgorithm(chromosomes, data = x, 
-              predictor = "a", num_partitions = 15, mutateProbability = 0.05)
+main_algorithm(chromosomes, data = x, 
+              predictor = "a", num_partitions = 15, 
+              genetic_operator = crossover, mutate_probability = 0.05, 
+              num_split = 2)
+
 
 # running with bic
 mainAlgorithm(chromosomes, data = x, 
@@ -218,22 +247,25 @@ mainAlgorithm(chromosomes, data = round(x,0),
 
 ### Iterated Algorithm
 
-loopAlgorithm <- function(num_iterations,
+loop_algorithm <- function(num_iterations,
                           data, 
                           chromosome_length = ncol(data), 
                           population_size = sample(chromosome_length:(2*chromosome_length), 1, replace=TRUE),
                           predictor,
                           num_partitions = floor(population_size/3),
-                          mutateProbability = 0.01,
+                          genetic_operator = crossover,
+                          mutate_probability = 0.01,
                           FUN = AIC,
                           ...) {
+
   
   # Create first generation
   chromosomes <- create_population(chromosome_length, population_size)
   
   # Repeat the algorithm
   for (i in 1:num_iterations) {
-    chromosomes <- mainAlgorithm(data, chromosomes, predictor, num_partitions, mutateProbability, FUN,...)
+    chromosomes <- main_algorithm(data, chromosomes, predictor, num_partitions, 
+                                 genetic_operator, mutate_probability, FUN, ...)
   }
   
   scores_test <- get_fitness(x, "a", chromosomes)
@@ -251,11 +283,13 @@ loopAlgorithm <- function(num_iterations,
   )
 }
 
+
 # Tests loopAlgorithm
 # Simple linear regression
 final <- loopAlgorithm(num_iterations = 10, chromosome_length = 10, population_size = 30, data = x, 
-              predictor = "a", num_partitions = 15, mutateProbability = 0.05)
+              predictor = "a", num_partitions = 15, genetic_operator = crossover, mutateProbability = 0.05)
 final
+
 # Check fitness score
 
 BIC(glm(a ~ h, data = round(x,0), family = binomial )) 
