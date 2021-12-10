@@ -15,11 +15,17 @@ main_algorithm <- function(data,
                           mutate_probability = 0.01,
                           FUN = AIC,
                           minimize = TRUE,
+                          num_split = 1,
                           ...
                           ) {
   
   # Generate fitness scores and combine with chromosomes matrix
-  fitness_scores <- get_fitness(data, predictor, chromosomes, FUN, minimize = TRUE, ...)
+  fitness_scores <- get_fitness(data = data, 
+                                name_y = predictor, 
+                                generation = chromosomes, 
+                                FUN = FUN, 
+                                minimize = TRUE, 
+                                ...)
   
   my_generation_info <- gather_fitness_generation(chromosomes, fitness_scores)
   
@@ -39,7 +45,7 @@ main_algorithm <- function(data,
                                            num_partitions))
   }
   
-  child <- genetic_operator(parents_A, parents_B)
+  child <- genetic_operator(parents_A, parents_B, num_split = 1)
   
   mutated <- mutate(child, mutate_probability)
   
@@ -63,7 +69,8 @@ chromosomes <- create_population(10,30)
 
 main_algorithm(chromosomes, data = x, 
               predictor = "a", num_partitions = 15, 
-              genetic_operator = crossover, mutate_probability = 0.05)
+              genetic_operator = crossover, num_split = 3, 
+              mutate_probability = 0.05)
 
 
 # running with bic
@@ -81,7 +88,7 @@ main_algorithm(chromosomes, data = round(x,0),
 
 ### Iterated Algorithm
 
-loop_algorithm <- function(num_iterations,
+select <- function(num_iterations,
                           data, 
                           chromosome_length = ncol(data), 
                           population_size = sample(chromosome_length:(2*chromosome_length), 1, replace=TRUE),
@@ -91,6 +98,7 @@ loop_algorithm <- function(num_iterations,
                           mutate_probability = 0.01,
                           FUN = AIC,
                           minimize = TRUE,
+                          num_split = 1,
                           ...) {
 
   
@@ -107,6 +115,7 @@ loop_algorithm <- function(num_iterations,
                                   mutate_probability = mutate_probability, 
                                   FUN = FUN,
                                   minimize = minimize,
+                                  num_split = num_split,
                                   ...)
   }
   
@@ -129,15 +138,16 @@ loop_algorithm <- function(num_iterations,
 
 
 
-# Tests loop_algorithm
+# Tests select
 # Simple linear regression
-final <- loop_algorithm(num_iterations = 10, 
+final <- select(num_iterations = 10, 
                         chromosome_length = 10, 
                         population_size = 30, 
                         data = x, 
                         predictor = "a", 
                         num_partitions = 15, 
                         genetic_operator = crossover, 
+                        num_split = 2,
                         mutate_probability = 0.05)
 final
 
@@ -145,18 +155,19 @@ final
 
 AIC(glm(a ~ f+h, data = x) )
 
-final <- loop_algorithm(num_iterations = 10, 
+final <- select(num_iterations = 10, 
                         chromosome_length = 10, 
                         population_size = 30, 
                         data = round(x,0), 
                         predictor = "a", 
                         num_partitions = 15, 
                         genetic_operator = crossover, 
+                        num_split = 3,
                         mutate_probability = 0.05,
                         FUN = BIC, family = binomial)
 final
 
 
-BIC(glm(a~b+c+d+e+f+i+j+k, data = round(x,0), family = binomial))
+BIC(glm(a~b+c+e+f+g+i+k, data = round(x,0), family = binomial))
 
 
