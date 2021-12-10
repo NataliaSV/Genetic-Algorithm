@@ -8,10 +8,10 @@ create_population <- function(chromosome_length, population_size){
   n <- chromosome_length * population_size
   chromosome <- as.vector(sample(0:1, n, replace=TRUE))
   population <- as.data.frame(matrix(chromosome, nrow = population_size, ncol = chromosome_length))
-  names(population) <- dput(paste0('gen_', seq(1,chromosome_length,1)))
+  names(population) <- paste('c("', paste(paste0('gen_', seq(1,chromosome_length,1)),collapse='","'), '")', sep='')
   return(population)
 }
-
+    
 ### Calculate Fitness
 
 # Function to identify the genes that would be active in each model given a chromosome:
@@ -29,18 +29,24 @@ set_formulas <- function(active_genes, name_y){
 # Function to compute the fitness (AIC) given a formula and a dataset
 # By default, it will fit a linear regression. Although, it can receive the parameters 
 # for a generalized linear model
-fitness <- function(formula, data, ...){
-  fitness <- AIC(glm(formula = formula, data = data, ...))
+fitness <- function(formula, data, FUN = AIC, ...){
+  
+  model <- glm(formula = formula, data = data, ...)
+  fitness <- FUN(model)
+  
   return(fitness)
 }
 
 # Compute the fitness of an entire generation:
 # The result is sort by the fittest individual to the least fit
-get_fitness <- function(X, name_y, generation){
-  data_names <- names(X)[!names(X) %in% c(name_y)]
+get_fitness <- function(data, name_y, generation, FUN = AIC, ...){
+  data_names <- names(data)[!names(data) %in% c(name_y)]
   variables <- apply(generation, 1, find_genes, data_names)
+  
+  variables[lengths(variables) == 0L] <- 1
+  
   formulas <- lapply(variables, set_formulas, name_y)
-  fitness <- lapply(formulas, fitness, X)
+  fitness <- lapply(formulas, fitness, data, FUN, ...)
   return(unlist(fitness))
 }
 
@@ -175,12 +181,13 @@ main_algorithm <- function(data,
                           predictor,
                           num_partitions = floor(population_size/3),
                           genetic_operator = crossover,
-                          mutate_probability = 0.01,
+                          mutateProbability = 0.01,
+                          FUN = AIC,
                           ...
                           ) {
   
   # Generate fitness scores and combine with chromosomes matrix
-  fitness_scores <- get_fitness(data, predictor, chromosomes)
+  fitness_scores <- get_fitness(data, predictor, chromosomes, FUN,...)
   
   my_generation_info <- gather_fitness_generation(chromosomes, fitness_scores)
   
@@ -220,11 +227,22 @@ names(x) <- letters[1:(chromosome_length+1)]
 # Create first generation
 chromosomes <- create_population(10,30)
 
-
 main_algorithm(chromosomes, data = x, 
               predictor = "a", num_partitions = 15, 
               genetic_operator = crossover, mutate_probability = 0.05, 
               num_split = 2)
+
+
+# running with bic
+mainAlgorithm(chromosomes, data = x, 
+              predictor = "a", num_partitions = 15, mutateProbability = 0.05,
+              FUN = BIC)
+
+# Running a glm with BIC
+mainAlgorithm(chromosomes, data = round(x,0), 
+              predictor = "a", num_partitions = 15, mutateProbability = 0.05,
+              FUN = BIC,
+              family = binomial)
 
 
 ### Iterated Algorithm
@@ -236,7 +254,10 @@ loop_algorithm <- function(num_iterations,
                           predictor,
                           num_partitions = floor(population_size/3),
                           genetic_operator = crossover,
-                          mutate_probability = 0.01, ...) {
+                          mutate_probability = 0.01,
+                          FUN = AIC,
+                          ...) {
+
   
   # Create first generation
   chromosomes <- create_population(chromosome_length, population_size)
@@ -244,23 +265,32 @@ loop_algorithm <- function(num_iterations,
   # Repeat the algorithm
   for (i in 1:num_iterations) {
     chromosomes <- main_algorithm(data, chromosomes, predictor, num_partitions, 
-                                 genetic_operator, mutate_probability, ...)
+                                 genetic_operator, mutate_probability, FUN, ...)
   }
   
-  # Return a list with the best individual, their score, and full matrix
-  return(chromosomes)
+  scores_test <- get_fitness(x, "a", chromosomes)
+  chromosome_fitness_matrix <- cbind(chromosomes, scores_test)
+  chromosome_fitness_matrix <- chromosome_fitness_matrix[order(chromosome_fitness_matrix[,ncol(chromosome_fitness_matrix)], decreasing=TRUE), ]
+
+  return(
+    list(
+      chromosomes = chromosome_fitness_matrix[, 1:ncol(chromosome_fitness_matrix)-1],
+      chromosomes_and_fitness = chromosome_fitness_matrix,
+      fitness_vec = chromosome_fitness_matrix[, ncol(chromosome_fitness_matrix)],
+      best_individual = chromosome_fitness_matrix[1, 1:ncol(chromosome_fitness_matrix)-1],
+      best_fitness = chromosome_fitness_matrix[1, ncol(chromosome_fitness_matrix)]
+    )
+  )
 }
 
-# Test loop_algorithm
-final <- loop_algorithm(num_iterations = 10, chromosome_length = 10, 
-                       population_size = 30, data = x, predictor = "a", 
-                       num_partitions = 15, genetic_operator = crossover, 
-                       mutate_probability = 0.05)
-scoresTest <- get_fitness(x, "a", final)
-final2 <- cbind(final, scoresTest)
-final3 <- final2[order(final2[,ncol(final2)], decreasing=FALSE), ]
+
+# Tests loopAlgorithm
+# Simple linear regression
+final <- loopAlgorithm(num_iterations = 10, chromosome_length = 10, population_size = 30, data = x, 
+              predictor = "a", num_partitions = 15, genetic_operator = crossover, mutateProbability = 0.05)
+final
 
 # Check fitness score
- AIC(lm(a ~ c+f+i, data = x )) 
 
+BIC(glm(a ~ h, data = round(x,0), family = binomial )) 
 
