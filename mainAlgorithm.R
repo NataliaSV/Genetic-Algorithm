@@ -170,7 +170,7 @@ mutate <- function(chromosomes, mutate_probability = 0.01) {
 
 set.seed(123)
 
-mainAlgorithm <- function(data,
+main_algorithm <- function(data,
                           chromosomes,
                           predictor,
                           num_partitions = floor(population_size/3),
@@ -207,7 +207,7 @@ mainAlgorithm <- function(data,
   return(mutated)
 }
 
-### Test mainAlgorithm
+### Test main_algorithm
 
 # Create data
 chromosome_length <- 10
@@ -221,7 +221,7 @@ names(x) <- letters[1:(chromosome_length+1)]
 chromosomes <- create_population(10,30)
 
 
-mainAlgorithm(chromosomes, data = x, 
+main_algorithm(chromosomes, data = x, 
               predictor = "a", num_partitions = 15, 
               genetic_operator = crossover, mutate_probability = 0.05, 
               num_split = 2)
@@ -243,7 +243,7 @@ loop_algorithm <- function(num_iterations,
   
   # Repeat the algorithm
   for (i in 1:num_iterations) {
-    chromosomes <- mainAlgorithm(data, chromosomes, predictor, num_partitions, 
+    chromosomes <- main_algorithm(data, chromosomes, predictor, num_partitions, 
                                  genetic_operator, mutate_probability, ...)
   }
   
