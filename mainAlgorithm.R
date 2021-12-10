@@ -8,7 +8,6 @@ create_population <- function(chromosome_length, population_size){
   n <- chromosome_length * population_size
   chromosome <- as.vector(sample(0:1, n, replace=TRUE))
   population <- as.data.frame(matrix(chromosome, nrow = population_size, ncol = chromosome_length))
-  #names(population) <- invisible(dput(paste0('gen_', seq(1,chromosome_length,1))))
   names(population) <- paste('c("', paste(paste0('gen_', seq(1,chromosome_length,1)),collapse='","'), '")', sep='')
   return(population)
 }
@@ -40,14 +39,14 @@ fitness <- function(formula, data, FUN = AIC, ...){
 
 # Compute the fitness of an entire generation:
 # The result is sort by the fittest individual to the least fit
-get_fitness <- function(X, name_y, generation, FUN = AIC, ...){
-  data_names <- names(X)[!names(X) %in% c(name_y)]
+get_fitness <- function(data, name_y, generation, FUN = AIC, ...){
+  data_names <- names(data)[!names(data) %in% c(name_y)]
   variables <- apply(generation, 1, find_genes, data_names)
   
   variables[lengths(variables) == 0L] <- 1
   
   formulas <- lapply(variables, set_formulas, name_y)
-  fitness <- lapply(formulas, fitness, X, FUN, ...)
+  fitness <- lapply(formulas, fitness, data, FUN, ...)
   return(unlist(fitness))
 }
 
