@@ -1,3 +1,5 @@
+library('assertthat')
+
 #' @title create_population
 #' @description Generates a population composed by individuals with chromosomes
 #' @param chromosome_length length of the chromosome of each individual in the population
@@ -98,9 +100,9 @@ fitness <- function(formula, data, FUN = AIC, ...){
               msg = "data cannot be empty")
   
   model <- glm(formula = formula, data = data, ...)
-  fitness <- FUN(model)
+  fitness_function <- FUN(model)
   
-  return(fitness)
+  return(fitness_function)
 }
 
 
@@ -136,9 +138,9 @@ get_fitness <- function(data, name_y, generation, FUN = AIC, ...){
   variables[lengths(variables) == 0L] <- 1
   
   formulas <- lapply(variables, set_formulas, name_y)
-  fitness <- lapply(formulas, fitness, data, FUN, ...)
+  fitness_scores <- lapply(formulas, fitness, data, FUN, ...)
   
-  return(unlist(fitness))
+  return(unlist(fitness_scores))
 }
 
 #' @title gather_fitness_generation

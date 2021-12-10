@@ -27,7 +27,7 @@ rank_selection <- function(population) {
 # A matrix with containing the best chromosomes from each partition.
 # The number of rows is equal to the number of partitions. Adds the 
 # fitness to the matrix as the last column (at column index: ncol(population)+1)
-tournamentSelection <- function(population, num_partitions=floor(nrow(population)/3)) {
+tournament_selection <- function(population, num_partitions=floor(nrow(population)/3)) {
   columns <- ncol(population) - 1
   rows <- nrow(population)
   
