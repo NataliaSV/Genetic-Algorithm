@@ -236,41 +236,27 @@ loopAlgorithm <- function(num_iterations,
     chromosomes <- mainAlgorithm(data, chromosomes, predictor, num_partitions, mutateProbability, FUN,...)
   }
   
-  # Return a list with the best individual, their score, and full matrix
-  return(chromosomes)
+  scores_test <- get_fitness(x, "a", chromosomes)
+  chromosome_fitness_matrix <- cbind(chromosomes, scores_test)
+  chromosome_fitness_matrix <- chromosome_fitness_matrix[order(chromosome_fitness_matrix[,ncol(chromosome_fitness_matrix)], decreasing=TRUE), ]
+
+  return(
+    list(
+      chromosomes = chromosome_fitness_matrix[, 1:ncol(chromosome_fitness_matrix)-1],
+      chromosomes_and_fitness = chromosome_fitness_matrix,
+      fitness_vec = chromosome_fitness_matrix[, ncol(chromosome_fitness_matrix)],
+      best_individual = chromosome_fitness_matrix[1, 1:ncol(chromosome_fitness_matrix)-1],
+      best_fitness = chromosome_fitness_matrix[1, ncol(chromosome_fitness_matrix)]
+    )
+  )
 }
 
 # Tests loopAlgorithm
 # Simple linear regression
 final <- loopAlgorithm(num_iterations = 10, chromosome_length = 10, population_size = 30, data = x, 
               predictor = "a", num_partitions = 15, mutateProbability = 0.05)
-
-scoresTest <- get_fitness(x, "a", final)
-final2 <- cbind(final, scoresTest)
-final3 <- final2[order(final2[,ncol(final2)], decreasing=FALSE), ]
-final3
-
-AIC(lm(a ~ c+f+i, data = x )) 
-
-# binomial glm using AIC
-final <- loopAlgorithm(num_iterations = 10, chromosome_length = 10, population_size = 30, data = round(x,0), 
-                       predictor = "a", num_partitions = 15, mutateProbability = 0.05, family = binomial)
-
-scoresTest <- get_fitness(round(x,0), "a", final, family = binomial)
-final2 <- cbind(final, scoresTest)
-final3 <- final2[order(final2[,ncol(final2)], decreasing=FALSE), ]
-final3
-
-AIC(glm(a ~ c+h+i, data = round(x,0), family = binomial )) 
-
-# binomial glm using BIC
-final <- loopAlgorithm(num_iterations = 10, chromosome_length = 10, population_size = 30, data = round(x,0), 
-                       predictor = "a", num_partitions = 15, mutateProbability = 0.05, FUN = BIC, family = binomial)
-
-scoresTest <- get_fitness(round(x,0), "a", final, FUN = BIC, family = binomial)
-final2 <- cbind(final, scoresTest)
-final3 <- final2[order(final2[,ncol(final2)], decreasing=FALSE), ]
-final3
+final
+# Check fitness score
 
 BIC(glm(a ~ h, data = round(x,0), family = binomial )) 
 
