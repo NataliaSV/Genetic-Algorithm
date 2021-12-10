@@ -5,12 +5,7 @@ source("parentSelection.R")
 source("projectCrossover.R")
 source("projectMutation.R")
 
-
-
-
 ### Full algorithm
-
-set.seed(123)
 
 main_algorithm <- function(data,
                           chromosomes,
@@ -19,11 +14,12 @@ main_algorithm <- function(data,
                           genetic_operator = crossover,
                           mutate_probability = 0.01,
                           FUN = AIC,
+                          minimize = TRUE,
                           ...
                           ) {
   
   # Generate fitness scores and combine with chromosomes matrix
-  fitness_scores <- get_fitness(data, predictor, chromosomes, FUN,...)
+  fitness_scores <- get_fitness(data, predictor, chromosomes, FUN, minimize = TRUE, ...)
   
   my_generation_info <- gather_fitness_generation(chromosomes, fitness_scores)
   
@@ -50,7 +46,9 @@ main_algorithm <- function(data,
   return(mutated)
 }
 
+
 ### Test main_algorithm
+set.seed(123)
 
 # Create data
 chromosome_length <- 10
@@ -92,6 +90,7 @@ loop_algorithm <- function(num_iterations,
                           genetic_operator = crossover,
                           mutate_probability = 0.01,
                           FUN = AIC,
+                          minimize = TRUE,
                           ...) {
 
   
@@ -100,8 +99,15 @@ loop_algorithm <- function(num_iterations,
   
   # Repeat the algorithm
   for (i in 1:num_iterations) {
-    chromosomes <- main_algorithm(data, chromosomes, predictor, num_partitions, 
-                                 genetic_operator, mutate_probability, FUN, ...)
+    chromosomes <- main_algorithm(data = data, 
+                                  chromosomes = chromosomes, 
+                                  predictor = predictor, 
+                                  num_partitions = num_partitions, 
+                                  genetic_operator = genetic_operator, 
+                                  mutate_probability = mutate_probability, 
+                                  FUN = FUN,
+                                  minimize = minimize,
+                                  ...)
   }
   
 
@@ -122,13 +128,35 @@ loop_algorithm <- function(num_iterations,
 }
 
 
+
 # Tests loop_algorithm
 # Simple linear regression
-final <- loop_algorithm(num_iterations = 10, chromosome_length = 10, population_size = 30, data = x, 
-              predictor = "a", num_partitions = 15, genetic_operator = crossover, mutate_probability = 0.05)
+final <- loop_algorithm(num_iterations = 10, 
+                        chromosome_length = 10, 
+                        population_size = 30, 
+                        data = x, 
+                        predictor = "a", 
+                        num_partitions = 15, 
+                        genetic_operator = crossover, 
+                        mutate_probability = 0.05)
 final
 
 # Check fitness score
 
-BIC(glm(a ~ h, data = round(x,0), family = binomial )) 
+AIC(glm(a ~ f+h, data = x) )
+
+final <- loop_algorithm(num_iterations = 10, 
+                        chromosome_length = 10, 
+                        population_size = 30, 
+                        data = round(x,0), 
+                        predictor = "a", 
+                        num_partitions = 15, 
+                        genetic_operator = crossover, 
+                        mutate_probability = 0.05,
+                        FUN = BIC, family = binomial)
+final
+
+
+BIC(glm(a~b+c+d+e+f+i+j+k, data = round(x,0), family = binomial))
+
 

@@ -70,15 +70,15 @@ set_formulas <- function(active_genes, name_y){
   assert_that(is.string(name_y),
               msg="the name of the target variable is not a string")
   
-  assert_that(is.character(active_genes),
-              msg="the vector with the active genes must be character type")
+  # assert_that(is.character(active_genes),
+  #             msg="the vector with the active genes must be character type")
   
   formulas <- as.formula(paste(name_y, paste(active_genes, sep = "", collapse = " + "), sep = " ~ "))
   
   return(formulas)
 }
 
-#' @title fitness
+#' @title fitness_function
 #' @description Fitness function
 #' @param formula formula to fit to each individual
 #' @param data dataset with all the variables of interest
@@ -86,12 +86,12 @@ set_formulas <- function(active_genes, name_y){
 #' @return numeric fitness computed to the individual
 #' @examples
 #'  data <-  matrix(runif(100), ncol=10, nrow = 10)
-#'  fitness(formula = as.formula(y ~ x), data)
+#'  fitness_function(formula = as.formula(y ~ x), data)
 #'  
 #'  Using the BIC function:
-#   fitness(formula = as.formula(y ~ x), data, FUN = BIC)
+#   fitness_function(formula = as.formula(y ~ x), data, FUN = BIC)
 
-fitness <- function(formula, data, FUN = AIC, ...){
+fitness_function <- function(formula, data, FUN = AIC, minimize = TRUE, ...){
   
   assert_that(inherits(formula, "formula"),
               msg="the input is not an actual formula")
@@ -100,9 +100,16 @@ fitness <- function(formula, data, FUN = AIC, ...){
               msg = "data cannot be empty")
   
   model <- glm(formula = formula, data = data, ...)
-  fitness_function <- FUN(model)
+  fitness_score <- FUN(model)
   
-  return(fitness_function)
+  # Lower AIC and BIC scores = fitter
+  if (minimize) {
+    return(-fitness_score)
+  }
+  # Other objective functions may have higher score = better
+  else {
+  return(fitness_score)
+  }
 }
 
 
@@ -121,7 +128,7 @@ fitness <- function(formula, data, FUN = AIC, ...){
 #'  
 #   get_fitness(data, name_y, generation)
 
-get_fitness <- function(data, name_y, generation, FUN = AIC, ...){
+get_fitness <- function(data, name_y, generation, FUN = AIC, minimize = TRUE, ...){
   
   assert_that(is.string(name_y),
               msg="the name of the target variable is not a string")
@@ -138,7 +145,7 @@ get_fitness <- function(data, name_y, generation, FUN = AIC, ...){
   variables[lengths(variables) == 0L] <- 1
   
   formulas <- lapply(variables, set_formulas, name_y)
-  fitness_scores <- lapply(formulas, fitness, data, FUN, ...)
+  fitness_scores <- lapply(formulas, fitness_function, data, FUN, minimize, ...)
   
   return(unlist(fitness_scores))
 }
