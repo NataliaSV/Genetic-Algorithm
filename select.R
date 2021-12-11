@@ -1,9 +1,11 @@
 library(dplyr)
 
-source("Functions.R")
+# setwd(file.path('..','GA/'))
+
+source("initialization.R")
 source("parentSelection.R")
-source("projectCrossover.R")
-source("projectMutation.R")
+source("crossover.R")
+source("mutation.R")
 
 ### Full algorithm
 
@@ -53,39 +55,6 @@ main_algorithm <- function(data,
 }
 
 
-### Test main_algorithm
-set.seed(123)
-
-# Create data
-chromosome_length <- 10
-population_size <- sample(chromosome_length:(2*chromosome_length),
-                          1, replace=TRUE)
-x <- as.data.frame(matrix(runif(100*(chromosome_length+1),0,1),
-                          ncol=(chromosome_length+1),nrow=100))
-names(x) <- letters[1:(chromosome_length+1)]
-
-# Create first generation
-chromosomes <- create_population(10,30)
-
-main_algorithm(chromosomes, data = x, 
-              predictor = "a", num_partitions = 15, 
-              genetic_operator = crossover, num_split = 3, 
-              mutate_probability = 0.05)
-
-
-# running with bic
-main_algorithm(chromosomes, data = x, 
-               predictor = "a", num_partitions = 15, 
-               genetic_operator = crossover, mutate_probability = 0.05,
-               FUN = BIC)
-
-# Running a glm with BIC
-main_algorithm(chromosomes, data = round(x,0), 
-              predictor = "a", num_partitions = 15, mutate_probability = 0.05,
-              genetic_operator = crossover, FUN = BIC,
-              family = binomial)
-
-
 ### Iterated Algorithm
 
 select <- function(num_iterations,
@@ -100,7 +69,6 @@ select <- function(num_iterations,
                           minimize = TRUE,
                           num_split = 1,
                           ...) {
-
   
   # Create first generation
   chromosomes <- create_population(chromosome_length, population_size)
@@ -119,42 +87,61 @@ select <- function(num_iterations,
                                   ...)
   }
   
-
-  
-  scores_test <- get_fitness(x, predictor, chromosomes)
+  scores_test <- get_fitness(data, predictor, chromosomes, FUN = FUN, minimize = minimize, ...)
   chromosome_fitness_matrix <- cbind(chromosomes, scores_test)
-  chromosome_fitness_matrix <- chromosome_fitness_matrix[order(chromosome_fitness_matrix[,ncol(chromosome_fitness_matrix)], decreasing=TRUE), ]
-
+  chromosome_fitness_matrix <- as.data.frame(chromosome_fitness_matrix[order(chromosome_fitness_matrix[,ncol(chromosome_fitness_matrix)], decreasing=TRUE), ])
+  names(chromosome_fitness_matrix) <- c(names(data)[!names(data) %in% c(predictor)],"score")
+    
   return(
     list(
       chromosomes = chromosome_fitness_matrix[, 1:ncol(chromosome_fitness_matrix)-1],
       chromosomes_and_fitness = chromosome_fitness_matrix,
       fitness_vec = chromosome_fitness_matrix[, ncol(chromosome_fitness_matrix)],
-      best_individual = chromosome_fitness_matrix[1, 1:ncol(chromosome_fitness_matrix)-1],
+      best_individual = as.vector(chromosome_fitness_matrix[1, 1:ncol(chromosome_fitness_matrix)-1]),
       best_fitness = chromosome_fitness_matrix[1, ncol(chromosome_fitness_matrix)]
     )
   )
 }
 
+###################### 
+### Tests select
+set.seed(123)
 
+# Create data
+chromosome_length <- 10
+population_size <- sample(chromosome_length:(2*chromosome_length),
+                          1, replace=TRUE)
+x <- as.data.frame(matrix(runif(100*(chromosome_length+1),0,1),
+                          ncol=(chromosome_length+1),nrow=100))
+names(x) <- letters[1:(chromosome_length+1)]
 
-# Tests select
-# Simple linear regression
+# Create first generation
+chromosomes <- create_population(10,30)
+
+# Test 1 
+#### Simple linear regression
+# Using select()
 final <- select(num_iterations = 10, 
-                        chromosome_length = 10, 
-                        population_size = 30, 
-                        data = x, 
-                        predictor = "a", 
-                        num_partitions = 15, 
-                        genetic_operator = crossover, 
-                        num_split = 2,
-                        mutate_probability = 0.05)
+                data = x, 
+                chromosome_length = 10, 
+                population_size = 30, 
+                predictor = "a", 
+                num_partitions = 15, 
+                genetic_operator = crossover,
+                mutate_probability = 0.05,
+                num_split = 2)
 final
 
-# Check fitness score
+# Using other functions from R
+active <- find_genes(as.vector(unlist(final$best_individual)), names(x[2:length(x)]))
+formula <- set_formulas(active, name_y = "a")
 
-AIC(glm(a ~ f+h, data = x) )
+# We obtain the same result
+abs(sum(AIC(glm(formula, data = x)), final$best_fitness)) < .Machine$double.eps
 
+# Test 2 
+#### GLM, family binomial, using BIC
+# Using select()
 final <- select(num_iterations = 10, 
                         chromosome_length = 10, 
                         population_size = 30, 
@@ -167,7 +154,13 @@ final <- select(num_iterations = 10,
                         FUN = BIC, family = binomial)
 final
 
+# Using other functions from R
+active <- find_genes(as.vector(unlist(final$best_individual)), names(x[2:length(x)]))
+formula <- set_formulas(active, name_y = "a")
 
-BIC(glm(a~b+c+e+f+g+i+k, data = round(x,0), family = binomial))
+# We obtain the same result
+abs(sum(BIC(glm(formula, data = round(x,0), family = binomial)), final$best_fitness)) < .Machine$double.eps
+
+
 
 

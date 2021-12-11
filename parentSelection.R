@@ -1,10 +1,10 @@
 ### STAT243 Group Project
 ### Parent Selection
 ### Hans Bak
-m <- 50
-n <- 100
-test_matrix <- round(matrix(runif(m*n), n, m))
-fitness <- c(runif(n))
+# m <- 50
+# n <- 100
+# test_matrix <- round(matrix(runif(m*n), n, m))
+# fitness <- c(runif(n))
 
 get_selection_propability <- function(rank, population_size) {
   return((2*rank)/(population_size*(population_size+1)))
@@ -60,4 +60,4 @@ shuffle_matrix <- function(matrix) {
 }
 
 
-rank_selection(cbind(test_matrix, fitness))
+# rank_selection(cbind(test_matrix, fitness))

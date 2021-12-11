@@ -1,3 +1,6 @@
+## Natalia Sarabia
+# Initialization step: Last updated Dec 10, 2021
+
 library('assertthat')
 
 #' @title create_population
@@ -23,7 +26,7 @@ create_population <- function(chromosome_length, population_size){
   n <- chromosome_length * population_size
   chromosome <- as.vector(sample(0:1, n, replace=TRUE))
   population <- as.data.frame(matrix(chromosome, nrow = population_size, ncol = chromosome_length))
-  names(population) <- paste('c("', paste(paste0('gen_', seq(1,chromosome_length,1)),collapse='","'), '")', sep='')
+  # names(population) <- paste('c("', paste(paste0('gen_', seq(1,chromosome_length,1)),collapse='","'), '")', sep='')
   
   return(population)
 }
@@ -70,15 +73,12 @@ set_formulas <- function(active_genes, name_y){
   assert_that(is.string(name_y),
               msg="the name of the target variable is not a string")
   
-  # assert_that(is.character(active_genes),
-  #             msg="the vector with the active genes must be character type")
-  
   formulas <- as.formula(paste(name_y, paste(active_genes, sep = "", collapse = " + "), sep = " ~ "))
   
   return(formulas)
 }
 
-#' @title fitness_function
+#' @title fitness
 #' @description Fitness function
 #' @param formula formula to fit to each individual
 #' @param data dataset with all the variables of interest
@@ -86,10 +86,10 @@ set_formulas <- function(active_genes, name_y){
 #' @return numeric fitness computed to the individual
 #' @examples
 #'  data <-  matrix(runif(100), ncol=10, nrow = 10)
-#'  fitness_function(formula = as.formula(y ~ x), data)
+#'  fitness(formula = as.formula(y ~ x), data)
 #'  
 #'  Using the BIC function:
-#   fitness_function(formula = as.formula(y ~ x), data, FUN = BIC)
+#   fitness(formula = as.formula(y ~ x), data, FUN = BIC)
 
 fitness_function <- function(formula, data, FUN = AIC, minimize = TRUE, ...){
   
@@ -108,7 +108,7 @@ fitness_function <- function(formula, data, FUN = AIC, minimize = TRUE, ...){
   }
   # Other objective functions may have higher score = better
   else {
-  return(fitness_score)
+    return(fitness_score)
   }
 }
 
