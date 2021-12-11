@@ -1,5 +1,5 @@
 # load the source code of the functions to be tested
-source("Functions.R")
+source("initialization.R")
 
 # tests for the find_genes function
 test_that("find_genes works with vector type inputs: ", {

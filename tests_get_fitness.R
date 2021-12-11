@@ -1,5 +1,5 @@
 # load the source code of the functions to be tested
-source("Functions.R")
+source("initialization.R")
 
 # tests for the get_fitness function
 test_that("get_fitness works with a target variable with name of string type and other non empty inputs: ", {

@@ -1,5 +1,5 @@
 # load the source code of the functions to be tested
-source("Functions.R")
+source("initialization.R")
 
 # tests for the create_population function
 test_that("create_population works with integer type inputs: ", {
