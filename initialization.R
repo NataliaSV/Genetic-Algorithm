@@ -1,5 +1,5 @@
 ### STAT243 Group Project
-### Initialization step: Last updated Dec 10, 2021
+### Initialization step: Last updated Dec 12, 2021
 ### Natalia Sarabia
 
 
@@ -85,6 +85,8 @@ set_formulas <- function(active_genes, name_y){
 #' @param formula formula to fit to each individual
 #' @param data dataset with all the variables of interest
 #' @param FUN function to measure the fitness of an individual, default is AIC, it must take a glm() model as input
+#' @param minimize depending on FUN, either minimize or not
+#' @param ... parameters for the glm model
 #' @return numeric fitness computed to the individual
 #' @examples
 #'  data <-  matrix(runif(100), ncol=10, nrow = 10)
@@ -121,7 +123,9 @@ fitness_function <- function(formula, data, FUN = AIC, minimize = TRUE, ...){
 #' @param name_y name of the variable that the user is trying to estimate
 #' @param generation dataframe containing the generation of individuals
 #' @param FUN function to measure the fitness of an individual, default is AIC, it must take a glm() model as input
-#' @return numeric vector with the fitness of the generation
+#' @param minimize depending on FUN, either minimize or not
+#' @param ... parameters for the glm model
+#' #' @return numeric vector with the fitness of the generation
 #' @examples
 #'  data <-  matrix(runif(100), ncol=10, nrow = 10)
 #'  names(data) <- c("var1","var2","var3","var4","var5","var6","var7","var8","var9","var10")
@@ -131,6 +135,9 @@ fitness_function <- function(formula, data, FUN = AIC, minimize = TRUE, ...){
 #   get_fitness(data, name_y, generation)
 
 get_fitness <- function(data, name_y, generation, FUN = AIC, minimize = TRUE, ...){
+  
+  assert_that(ncol(as.data.frame(generation)) == (ncol(as.data.frame(data))-1),
+              msg = "the number of chromosomes must be equal to the number of columns of your data - 1")
   
   assert_that(is.string(name_y),
               msg="the name of the target variable is not a string")

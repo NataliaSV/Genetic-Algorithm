@@ -70,6 +70,37 @@ main_algorithm <- function(data,
 
 ### Iterated Algorithm
 
+#' @title select
+#' @description Conducts variable selection for a linear model
+#' @param num_iterations number of iterations the user expect the algorithm performs
+#' @param data full data set 
+#' @param chromosome_length number of chromosomes (variables) that the user wants to be included
+#' @param population_size size of the generation/population
+#' @param response string with the name of the response variable
+#' @param num_partitions number of partitions in the selection step
+#' @param genetic_opterator type of genetic operator the user wants to use
+#' @param mutate_probability probability of mutation
+#' @param FUN fitness function, default AIC, but it could be any function that receives a glm model as parameter
+#' @param minimize depending on the FUN, if the user wants to minimize or maximize it
+#' @param num_split number of splits in the crossover
+#' @param ... other parameters for the glm function, for instance, family.
+#' @return data frame with the population
+#' @examples
+#' chromosome_length <- 10
+#' x <- as.data.frame(matrix(runif(100*(chromosome_length+1),0,1),
+#' ncol=(chromosome_length+1),nrow=100))
+#' names(x) <- letters[1:(chromosome_length+1)]
+#'  select(num_iterations = 10, 
+#'  chromosome_length = chromosome_length, 
+#'  data = round(x,0), 
+#'  response = "a", 
+#'  num_partitions = 15, 
+#'  genetic_operator = crossover, 
+#'  num_split = 3,
+#'  mutate_probability = 0.05,
+#'  FUN = BIC, family = binomial)
+#'  
+
 select <- function(num_iterations,
                    data, 
                    chromosome_length = ncol(data), 
@@ -134,9 +165,6 @@ population_size <- sample(chromosome_length:(2*chromosome_length),
 x <- as.data.frame(matrix(runif(100*(chromosome_length+1),0,1),
                           ncol=(chromosome_length+1),nrow=100))
 names(x) <- letters[1:(chromosome_length+1)]
-
-# Create first generation
-chromosomes <- create_population(10,30)
 
 # Test 1 
 #### Simple linear regression
