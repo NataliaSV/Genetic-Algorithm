@@ -37,7 +37,8 @@ main_algorithm <- function(data,
   my_generation_info <- gather_fitness_generation(chromosomes, fitness_scores)
   
   ## Create parents A and B
-  parents_A <- tournament_selection(as.matrix(my_generation_info), num_partitions)
+  parents_A <- tournament_selection(as.matrix(my_generation_info), 
+                                    num_partitions)
   # Run tournament selection multiple times to keep number of individuals the 
   # same over each generation
   for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
@@ -45,7 +46,9 @@ main_algorithm <- function(data,
       tournament_selection(as.matrix(my_generation_info), num_partitions))
   }
   
-  parents_B <- tournament_selection(as.matrix(my_generation_info), num_partitions)
+  parents_B <- tournament_selection(as.matrix(my_generation_info), 
+                                    num_partitions)
+  
   for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
     parents_B <- rbind(parents_B,
                       tournament_selection(as.matrix(my_generation_info), 
@@ -70,14 +73,14 @@ main_algorithm <- function(data,
 select <- function(num_iterations,
                    data, 
                    chromosome_length = ncol(data), 
-                   population_size = 2*chromosome_length,
+                   population_size = 2 * chromosome_length,
                    predictor,
-                   num_partitions = floor(population_size/3),
-                   genetic_operator = crossover,
-                   mutate_probability = 0.01,
                    FUN = AIC,
                    minimize = TRUE,
+                   num_partitions = floor(population_size/3),
+                   genetic_operator = crossover,
                    num_split = 1,
+                   mutate_probability = 0.01,
                    ...) {
   
   # Create first generation
@@ -88,19 +91,26 @@ select <- function(num_iterations,
     chromosomes <- main_algorithm(data = data, 
                                   chromosomes = chromosomes, 
                                   predictor = predictor, 
-                                  num_partitions = num_partitions, 
-                                  genetic_operator = genetic_operator, 
-                                  mutate_probability = mutate_probability, 
                                   FUN = FUN,
                                   minimize = minimize,
+                                  num_partitions = num_partitions, 
+                                  genetic_operator = genetic_operator, 
                                   num_split = num_split,
+                                  mutate_probability = mutate_probability, 
                                   ...)
   }
   
-  scores_test <- get_fitness(data, predictor, chromosomes, FUN = FUN, minimize = minimize, ...)
+  scores_test <- get_fitness(data, 
+                             predictor, 
+                             chromosomes, 
+                             FUN = FUN, 
+                             minimize = minimize,
+                             ...)
   chromosome_fitness_matrix <- cbind(chromosomes, scores_test)
-  chromosome_fitness_matrix <- as.data.frame(chromosome_fitness_matrix[order(chromosome_fitness_matrix[,ncol(chromosome_fitness_matrix)], decreasing=TRUE), ])
-  names(chromosome_fitness_matrix) <- c(names(data)[!names(data) %in% c(predictor)],"score")
+  chromosome_fitness_matrix <- 
+    as.data.frame(chromosome_fitness_matrix[order(chromosome_fitness_matrix[,ncol(chromosome_fitness_matrix)], decreasing=TRUE), ])
+  names(chromosome_fitness_matrix) <- 
+    c(names(data)[!names(data) %in% c(predictor)],"score")
     
   return(
     list(
@@ -143,7 +153,8 @@ final <- select(num_iterations = 10,
 final
 
 # Using other functions from R
-active <- find_genes(as.vector(unlist(final$best_individual)), names(x[2:length(x)]))
+active <- find_genes(as.vector(unlist(final$best_individual)), 
+                     names(x[2:length(x)]))
 formula <- set_formulas(active, name_y = "a")
 
 # We obtain the same result
