@@ -1,3 +1,8 @@
+### STAT243 Group Project
+### Select Function - Full Algorithm
+### Jonathan Ling, Hans Bak Nielsen, Natalia Sarabia
+
+
 library(dplyr)
 
 # setwd(file.path('..','GA/'))
@@ -12,12 +17,12 @@ source("mutation.R")
 main_algorithm <- function(data,
                           chromosomes,
                           predictor,
-                          num_partitions = floor(population_size/3),
-                          genetic_operator = crossover,
-                          mutate_probability = 0.01,
                           FUN = AIC,
                           minimize = TRUE,
+                          num_partitions = floor(population_size/3),
+                          genetic_operator = crossover,
                           num_split = 1,
+                          mutate_probability = 0.01,
                           ...
                           ) {
   
@@ -47,7 +52,12 @@ main_algorithm <- function(data,
                                            num_partitions))
   }
   
-  child <- genetic_operator(parents_A, parents_B, num_split = 1)
+  if (all.equal(genetic_operator, crossover)) {
+    child <- genetic_operator(parents_A, parents_B, num_split = 1)
+  }
+  else{
+    child <- genetic_operator(parents_A, parents_B)
+  }
   
   mutated <- mutate(child, mutate_probability)
   
@@ -58,17 +68,17 @@ main_algorithm <- function(data,
 ### Iterated Algorithm
 
 select <- function(num_iterations,
-                          data, 
-                          chromosome_length = ncol(data), 
-                          population_size = sample(chromosome_length:(2*chromosome_length), 1, replace=TRUE),
-                          predictor,
-                          num_partitions = floor(population_size/3),
-                          genetic_operator = crossover,
-                          mutate_probability = 0.01,
-                          FUN = AIC,
-                          minimize = TRUE,
-                          num_split = 1,
-                          ...) {
+                   data, 
+                   chromosome_length = ncol(data), 
+                   population_size = 2*chromosome_length,
+                   predictor,
+                   num_partitions = floor(population_size/3),
+                   genetic_operator = crossover,
+                   mutate_probability = 0.01,
+                   FUN = AIC,
+                   minimize = TRUE,
+                   num_split = 1,
+                   ...) {
   
   # Create first generation
   chromosomes <- create_population(chromosome_length, population_size)

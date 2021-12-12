@@ -1,6 +1,7 @@
 ### Testing Mutation
 
-source("projectMutation.R")
+source("mutation.R")
+library(testthat)
 
 test_mat <- matrix(sample(c(0,1), 200, replace = T),10,20)
 mutated_mat <- mutate(test_mat)

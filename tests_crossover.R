@@ -1,5 +1,7 @@
-### Testing
-source("projectCrossover.R")
+### Testing crossover
+
+source("crossover.R")
+library(testthat)
 
 test_that("the output is a matrix and is the same size as the parent matrices
           with values from either parent",

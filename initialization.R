@@ -1,5 +1,7 @@
-## Natalia Sarabia
-# Initialization step: Last updated Dec 10, 2021
+### STAT243 Group Project
+### Initialization step: Last updated Dec 10, 2021
+### Natalia Sarabia
+
 
 library('assertthat')
 
@@ -78,7 +80,7 @@ set_formulas <- function(active_genes, name_y){
   return(formulas)
 }
 
-#' @title fitness
+#' @title fitness_function
 #' @description Fitness function
 #' @param formula formula to fit to each individual
 #' @param data dataset with all the variables of interest

@@ -1,19 +1,19 @@
 ### STAT243 Group Project
 ### Parent Selection
-### Hans Bak
+### Hans Bak Nielsen
 # m <- 50
 # n <- 100
 # test_matrix <- round(matrix(runif(m*n), n, m))
 # fitness <- c(runif(n))
 
-get_selection_propability <- function(rank, population_size) {
+get_selection_probability <- function(rank, population_size) {
   return((2*rank)/(population_size*(population_size+1)))
 }
 
 rank_selection <- function(population) {
   sorted_population <- population[order(population[,ncol(population)], decreasing=TRUE), ]
   probability_vec <- sapply(1:nrow(population), function(rank){
-    get_selection_propability(rank, nrow(population))
+    get_selection_probability(rank, nrow(population))
   })
   sorted_population[sample(1:nrow(population), size = nrow(population), prob = probability_vec),]
 }
