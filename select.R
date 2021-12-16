@@ -106,7 +106,7 @@ main_algorithm <- function(data,
 #'  
 
 select <- function(data, 
-                   chromosome_length = ncol(data), 
+                   chromosome_length = ncol(data) - 1, 
                    population_size = 2 * chromosome_length,
                    predictor,
                    FUN = AIC,
