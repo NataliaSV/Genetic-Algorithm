@@ -1,5 +1,5 @@
 get_next_generation <- function(data, chromosomes,
-                                predictor,
+                                response,
                                 FUN = AIC,
                                 minimize = TRUE,
                                 num_partitions = floor(population_size/3),
@@ -11,7 +11,7 @@ get_next_generation <- function(data, chromosomes,
   
   # Generate fitness scores and combine with chromosomes matrix
   fitness_scores <- get_fitness(data = data, 
-                                name_y = predictor, 
+                                name_y = response, 
                                 generation = chromosomes, 
                                 FUN = FUN, 
                                 minimize = TRUE, 
@@ -26,30 +26,26 @@ get_next_generation <- function(data, chromosomes,
   ## Create parents A and B 
   if (parent_selection == 'tournament') {
     parents_A <- tournament_selection(as.matrix(my_generation_info), 
-                                      num_partitions, 
-                                      minimize = minimize)
+                                      num_partitions)
     # Run tournament selection multiple times to keep number of individuals the 
     # same over each generation
     for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
       parents_A <- rbind(parents_A,
         tournament_selection(as.matrix(my_generation_info), 
-                             num_partitions, 
-                             minimize = minimize))
+                             num_partitions))
     }
     
     parents_B <- tournament_selection(as.matrix(my_generation_info), 
-                                      num_partitions, 
-                                      minimize = minimize)
+                                      num_partitions)
     
     for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
       parents_B <- rbind(parents_B,
                         tournament_selection(as.matrix(my_generation_info), 
-                                             num_partitions,
-                                             minimize = minimize))
+                                             num_partitions))
     }
   } else {
-    parents_A <- rank_selection(as.matrix(my_generation_info), minimize = minimize)
-    parents_B <- rank_selection(as.matrix(my_generation_info), minimize = minimize)
+    parents_A <- rank_selection(as.matrix(my_generation_info))
+    parents_B <- rank_selection(as.matrix(my_generation_info))
   }
   
   if (all.equal(genetic_operator, crossover)) {

@@ -1,14 +1,9 @@
-library(assertthat)
-
 get_selection_probability <- function(rank, population_size) {
   return((2*rank)/(population_size*(population_size+1)))
 }
 
-rank_selection <- function(population_with_fitness, minimize = TRUE) {
-  assert_that(population_with_fitness[,1:ncol(population_with_fitness)-1] == 0 ||
-              population_with_fitness[,1:ncol(population_with_fitness)-1] == 1 )
-
-  sorted_population_with_fitness <- population_with_fitness[order(population_with_fitness[,ncol(population_with_fitness)], decreasing=!minimize), ]
+rank_selection <- function(population_with_fitness) {
+  sorted_population_with_fitness <- population_with_fitness[order(population_with_fitness[,ncol(population_with_fitness)], decreasing=TRUE), ]
   probability_vec <- sapply(1:nrow(population_with_fitness), function(rank){
     get_selection_probability(rank, nrow(population_with_fitness))
   })
@@ -27,22 +22,15 @@ rank_selection <- function(population_with_fitness, minimize = TRUE) {
 # A matrix with containing the best chromosomes from each partition.
 # The number of rows is equal to the number of partitions. Adds the 
 # fitness to the matrix as the last column (at column index: ncol(population)+1)
-tournament_selection <- function(population_with_fitness, num_partitions=floor(nrow(population_with_fitness)/3), minimize = TRUE) {
+tournament_selection <- function(population_with_fitness, num_partitions=floor(nrow(population_with_fitness)/3)) {
   columns <- ncol(population_with_fitness) - 1
   rows <- nrow(population_with_fitness)
-
-  assert_that(population_with_fitness[,1:columns] == 0 ||
-              population_with_fitness[,1:columns] == 1 )
   
   combined_matrix <- shuffle_matrix(population_with_fitness)
   
   partitions <- matrix_partition(combined_matrix, num_partitions)
   selectedParents <- t(sapply(partitions, function(x) {
-    if (minimize) {
-      x[which.min(x[,columns + 1]),]
-    } else {
-      x[which.max(x[,columns + 1]),]
-    }
+    x[which.max(x[,columns + 1]),]
   }))
   
   return(selectedParents[,1:(columns)])

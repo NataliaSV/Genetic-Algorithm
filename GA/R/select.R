@@ -1,4 +1,4 @@
-library(dplyr)
+#' @import dplyr
 
 #' @export 
 #' @title select
@@ -18,6 +18,7 @@ library(dplyr)
 #' @param ... other parameters for the glm function, for instance, family.
 #' @return data frame with the population
 #' @examples # Examples
+#' library(GA)
 #'set.seed(34)
 #'
 #'##  Simple linear regression:
@@ -33,7 +34,6 @@ library(dplyr)
 #'                response = "V1", 
 #'                chromosome_length = chromosome_length,
 #'                num_partitions = 15, 
-#'                genetic_operator = crossover,
 #'                mutate_probability = 0.01,
 #'                num_split = 3,
 #'                stop_criterion = 0.05,
@@ -61,7 +61,6 @@ library(dplyr)
 #'                response = "V1", 
 #'                chromosome_length = chromosome_length, 
 #'                num_partitions = 15, 
-#'                genetic_operator = crossover,
 #'                mutate_probability = 0.02,
 #'                num_split = 4,
 #'                stop_criterion = 0.04,

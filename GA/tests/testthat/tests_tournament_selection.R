@@ -6,9 +6,7 @@ test_that("the output matrix is formatted correctly and errors are thrown when g
   result_matrix <- tournament_selection(cbind(test_matrix, fitness))
   
   expect_is(result_matrix, 'matrix')
-  expect_true(result_matrix == 1 || result_matrix == 0)
   expect_equal(ncol(result_matrix), ncol(test_matrix))
   expect_error(tournament_selection(fitness))
   expect_error(tournament_selection(1))
-  expect_error(tournament_selection(matrix(runif(100), ncol = 10, nrow = 10)))
 })

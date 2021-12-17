@@ -35,8 +35,6 @@ select(
 
 \item{num_partitions}{number of partitions in the selection step}
 
-\item{genetic_opterator}{type of genetic operator the user wants to use}
-
 \item{num_split}{number of splits in the crossover}
 
 \item{mutate_probability}{probability of mutation}
@@ -46,6 +44,8 @@ select(
 \item{parent_selection}{which parent selection algorithm should be used. Can be: 'rank' or 'tournament'}
 
 \item{...}{other parameters for the glm function, for instance, family.}
+
+\item{genetic_opterator}{type of genetic operator the user wants to use}
 }
 \value{
 data frame with the population
@@ -55,6 +55,7 @@ Conducts variable selection for a linear model
 }
 \examples{
 # Examples
+library(GA)
 set.seed(34)
 
 ##  Simple linear regression:
@@ -67,10 +68,9 @@ data <- as.data.frame(matrix(runif(rows * columns,0,1),
 chromosome_length <- columns - 1
 
 final <- select(data = data, 
-               response = "V1",
-               chromosome_length = chromosome_length, 
+               response = "V1", 
+               chromosome_length = chromosome_length,
                num_partitions = 15, 
-               genetic_operator = crossover,
                mutate_probability = 0.01,
                num_split = 3,
                stop_criterion = 0.05,
@@ -94,11 +94,10 @@ head(data)
 data$V1 <- round(data$V1,0)
 
 # Run the Genetic algorithm:
-final <- select(data = data,
+final <- select(data = data, 
                response = "V1", 
                chromosome_length = chromosome_length, 
                num_partitions = 15, 
-               genetic_operator = crossover,
                mutate_probability = 0.02,
                num_split = 4,
                stop_criterion = 0.04,
