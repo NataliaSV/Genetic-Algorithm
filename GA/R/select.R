@@ -4,9 +4,9 @@ library(dplyr)
 #' @title select
 #' @description Conducts variable selection for a linear model
 #' @param data full data set 
+#' @param response string with the name of the response variable
 #' @param chromosome_length number of chromosomes (variables) that the user wants to be included
 #' @param population_size size of the generation/population
-#' @param response string with the name of the response variable
 #' @param num_partitions number of partitions in the selection step
 #' @param genetic_opterator type of genetic operator the user wants to use
 #' @param mutate_probability probability of mutation
@@ -30,8 +30,8 @@ library(dplyr)
 #'chromosome_length <- columns - 1
 #'
 #'final <- select(data = data, 
-#'                chromosome_length = chromosome_length, 
-#'                predictor = "V1", 
+#'                response = "V1", 
+#'                chromosome_length = chromosome_length,
 #'                num_partitions = 15, 
 #'                genetic_operator = crossover,
 #'                mutate_probability = 0.01,
@@ -58,8 +58,8 @@ library(dplyr)
 #'
 #'# Run the Genetic algorithm:
 #'final <- select(data = data, 
+#'                response = "V1", 
 #'                chromosome_length = chromosome_length, 
-#'                predictor = "V1", 
 #'                num_partitions = 15, 
 #'                genetic_operator = crossover,
 #'                mutate_probability = 0.02,
@@ -70,9 +70,9 @@ library(dplyr)
 #'# Find the fittest individual:
 #'final$overall_best_individual
 select <- function(data, 
+                   response,
                    chromosome_length = ncol(data) - 1, 
                    population_size = 2 * chromosome_length,
-                   predictor,
                    FUN = AIC,
                    minimize = TRUE,
                    num_partitions = floor(population_size/3),
@@ -98,8 +98,8 @@ select <- function(data,
   while (stop == FALSE) {
     # Perform the algorithm
     chromosomes_list <- get_next_generation(data = data, 
+                                            response = response,
                                             chromosomes = chromosomes_list[[1]], 
-                                            predictor = predictor, 
                                             FUN = FUN,
                                             minimize = minimize,
                                             num_partitions = num_partitions, 
@@ -130,7 +130,7 @@ select <- function(data,
   
   # Check fitness of the final generation
   scores_test <- get_fitness(data, 
-                             predictor, 
+                             response, 
                              chromosomes_list[[1]], 
                              FUN = FUN, 
                              minimize = minimize,
@@ -141,7 +141,7 @@ select <- function(data,
   chromosome_fitness_matrix <- 
     as.data.frame(chromosome_fitness_matrix[order(chromosome_fitness_matrix[,ncol(chromosome_fitness_matrix)], decreasing=TRUE), ])
   names(chromosome_fitness_matrix) <- 
-    c(names(data)[!names(data) %in% c(predictor)],"score")
+    c(names(data)[!names(data) %in% c(response)],"score")
   
   # Find the best genes in the last generation
   last_gen_best_fitness <- chromosome_fitness_matrix[1, ncol(chromosome_fitness_matrix)]
@@ -183,9 +183,9 @@ names(x) <- letters[1:(chromosome_length+1)]
 #### Simple linear regression
 # Using select()
 final <- select(data = x, 
+                response = "a", 
                 chromosome_length = 10, 
                 population_size = 30, 
-                predictor = "a", 
                 num_partitions = 15, 
                 genetic_operator = crossover,
                 num_split = 4,
@@ -210,10 +210,10 @@ abs(sum(AIC(glm(formula_last, data = x)), final$last_gen_best_fitness)) < .Machi
 # Test 2 
 #### GLM, family binomial, using BIC
 # Using select()
-final <- select(chromosome_length = 10, 
+final <- select(data = round(x,0), 
+                response = "a", 
+                chromosome_length = 10, 
                 population_size = 30, 
-                data = round(x,0), 
-                predictor = "a", 
                 num_partitions = 15, 
                 genetic_operator = crossover, 
                 num_split = 2,

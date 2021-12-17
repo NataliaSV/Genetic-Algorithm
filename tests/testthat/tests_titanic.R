@@ -38,7 +38,7 @@ test_that("Algorithm works for titanic data set", {
 
   # Test our select() function
   best_individual <- select(data = cleaned_data,
-                            predictor = "a", 
+                            response = "a", 
                             minimize = FALSE)$overall_best_individual
 
   # We expect columns b (Passenger ID), e, and i (randomly generated numbers) to

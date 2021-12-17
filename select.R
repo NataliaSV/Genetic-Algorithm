@@ -12,7 +12,7 @@ source(here("mutation.R"))
 ### Full algorithm
 
 main_algorithm <- function(data, chromosomes,
-                           predictor,
+                           response,
                            FUN = AIC,
                            minimize = TRUE,
                            num_partitions = floor(population_size/3),
@@ -24,7 +24,7 @@ main_algorithm <- function(data, chromosomes,
   
   # Generate fitness scores and combine with chromosomes matrix
   fitness_scores <- get_fitness(data = data, 
-                                name_y = predictor, 
+                                name_y = response, 
                                 generation = chromosomes, 
                                 FUN = FUN, 
                                 minimize = TRUE, 
@@ -100,9 +100,9 @@ main_algorithm <- function(data, chromosomes,
 
 
 select <- function(data, 
+                   response,
                    chromosome_length = ncol(data) - 1, 
                    population_size = 2 * chromosome_length,
-                   predictor,
                    FUN = AIC,
                    minimize = TRUE,
                    num_partitions = floor(population_size/3),
@@ -128,8 +128,8 @@ select <- function(data,
   while (stop == FALSE) {
     # Perform the algorithm
     chromosomes_list <- main_algorithm(data = data, 
+                                  response = response, 
                                   chromosomes = chromosomes_list[[1]], 
-                                  predictor = predictor, 
                                   FUN = FUN,
                                   minimize = minimize,
                                   num_partitions = num_partitions, 
@@ -160,7 +160,7 @@ select <- function(data,
   
   # Check fitness of the final generation
   scores_test <- get_fitness(data, 
-                             predictor, 
+                             response, 
                              chromosomes_list[[1]], 
                              FUN = FUN, 
                              minimize = minimize,
@@ -171,7 +171,7 @@ select <- function(data,
   chromosome_fitness_matrix <- 
     as.data.frame(chromosome_fitness_matrix[order(chromosome_fitness_matrix[,ncol(chromosome_fitness_matrix)], decreasing=TRUE), ])
   names(chromosome_fitness_matrix) <- 
-    c(names(data)[!names(data) %in% c(predictor)],"score")
+    c(names(data)[!names(data) %in% c(response)],"score")
   
   # Find the best genes in the last generation
   last_gen_best_fitness <- chromosome_fitness_matrix[1, ncol(chromosome_fitness_matrix)]
@@ -213,9 +213,9 @@ names(x) <- letters[1:(chromosome_length+1)]
 #### Simple linear regression
 # Using select()
 final <- select(data = x, 
+                response = "a", 
                 chromosome_length = 10, 
                 population_size = 30, 
-                predictor = "a", 
                 num_partitions = 15, 
                 genetic_operator = crossover,
                 num_split = 4,
@@ -240,10 +240,10 @@ abs(sum(AIC(glm(formula_last, data = x)), final$last_gen_best_fitness)) < .Machi
 # Test 2 
 #### GLM, family binomial, using BIC
 # Using select()
-final <- select(chromosome_length = 10, 
+final <- select(data = round(x,0), 
+                response = "a", 
+                chromosome_length = 10, 
                 population_size = 30, 
-                data = round(x,0), 
-                predictor = "a", 
                 num_partitions = 15, 
                 genetic_operator = crossover, 
                 num_split = 2,

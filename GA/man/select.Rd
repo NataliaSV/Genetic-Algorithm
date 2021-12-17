@@ -6,9 +6,9 @@
 \usage{
 select(
   data,
+  response,
   chromosome_length = ncol(data) - 1,
   population_size = 2 * chromosome_length,
-  predictor,
   FUN = AIC,
   minimize = TRUE,
   num_partitions = floor(population_size/3),
@@ -23,6 +23,8 @@ select(
 \arguments{
 \item{data}{full data set}
 
+\item{response}{string with the name of the response variable}
+
 \item{chromosome_length}{number of chromosomes (variables) that the user wants to be included}
 
 \item{population_size}{size of the generation/population}
@@ -33,6 +35,8 @@ select(
 
 \item{num_partitions}{number of partitions in the selection step}
 
+\item{genetic_opterator}{type of genetic operator the user wants to use}
+
 \item{num_split}{number of splits in the crossover}
 
 \item{mutate_probability}{probability of mutation}
@@ -42,10 +46,6 @@ select(
 \item{parent_selection}{which parent selection algorithm should be used. Can be: 'rank' or 'tournament'}
 
 \item{...}{other parameters for the glm function, for instance, family.}
-
-\item{response}{string with the name of the response variable}
-
-\item{genetic_opterator}{type of genetic operator the user wants to use}
 }
 \value{
 data frame with the population
@@ -67,8 +67,8 @@ data <- as.data.frame(matrix(runif(rows * columns,0,1),
 chromosome_length <- columns - 1
 
 final <- select(data = data, 
+               response = "V1",
                chromosome_length = chromosome_length, 
-               predictor = "V1", 
                num_partitions = 15, 
                genetic_operator = crossover,
                mutate_probability = 0.01,
@@ -94,9 +94,9 @@ head(data)
 data$V1 <- round(data$V1,0)
 
 # Run the Genetic algorithm:
-final <- select(data = data, 
+final <- select(data = data,
+               response = "V1", 
                chromosome_length = chromosome_length, 
-               predictor = "V1", 
                num_partitions = 15, 
                genetic_operator = crossover,
                mutate_probability = 0.02,
