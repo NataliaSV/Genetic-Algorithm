@@ -1,0 +1,26 @@
+Package: GA
+Title: Genetic Algorithm
+Version: 0.0.0.9000
+Authors@R:  
+    c(
+        person(given = "Hans Bak", 
+               family = "Nielsen", 
+               email = "hansbak@berkeley.edu", 
+               role = c("aut", "cre")), 
+        person(given = "Jonathan", 
+               family = "Ling", 
+               email = "jonathan_ling@berkeley.edu", 
+               role = c("aut")), 
+        person(given = "Natalia Sarabia", 
+               family = "Vasquez", 
+               email = "natalia_sarabia10@berkeley.edu", 
+               role = c("aut")))
+Description: This package is an implementation of the genetic algorithm.
+License: N/A
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Imports: assertthat, dplyr, extraDistr, titanic
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
