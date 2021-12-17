@@ -1,0 +1,24 @@
+Package: GA
+Title: Genetic Algorith
+Version: 1.0
+Authors@R: 
+    c(
+        person(given = "Hans Bak", 
+               family = "Nielsen", 
+               email = "hansbak@berkeley.edu", 
+               role = c("aut", "cre")), 
+        person(given = "Jonathan", 
+               family = "Ling", 
+               email = "jonathan_ling@berkeley.edu", 
+               role = c("aut")), 
+        person(given = "Natalia Sarabia", 
+               family = "Vasquez", 
+               email = "natalia_sarabia10@berkeley.edu", 
+               role = c("aut")))
+Description: This package is an implementation of the genetic algorithm.
+License: `use_mit_license()`
+Encoding: UTF-8
+Imports: assertthat, dplyr, here, extraDistr, titanic
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

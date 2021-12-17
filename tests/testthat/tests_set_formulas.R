@@ -1,7 +1,5 @@
-# load the source code of the functions to be tested
-source("initialization.R")
+source("../../initialization.R")
 
-# tests for the set formulas function
 test_that("set formulas works with character type inputs: ", {
   active_genes <- c("var_1","var_2")
   name_y <- c(1)
@@ -14,6 +12,4 @@ test_that("set formulas works with character type inputs: ", {
   
   expect_error(set_formulas(active_genes, name_y),
                'the name of the target variable is not a string')
-  
-  
 })

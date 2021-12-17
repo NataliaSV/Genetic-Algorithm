@@ -2,7 +2,6 @@
 ### Initialization step: Last updated Dec 12, 2021
 ### Natalia Sarabia
 
-
 library('assertthat')
 
 #' @title create_population

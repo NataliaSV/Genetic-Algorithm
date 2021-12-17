@@ -7,7 +7,7 @@ set.seed(34)
 # Create data
 rows <- 1000
 columns <- 100
-data <- as.data.frame(matrix( runif(rows * columns,0,1),
+data <- as.data.frame(matrix(runif(rows * columns,0,1),
                              ncol = columns, nrow = rows))
 
 chromosome_length <- columns - 1
@@ -19,11 +19,15 @@ final <- select(data = data,
                 genetic_operator = crossover,
                 mutate_probability = 0.01,
                 num_split = 3,
-                stop_criterion = 0.05)
-
+                stop_criterion = 0.05,
+                minimize = FALSE)
+names(final)
 # Find the fittest individual:
 final$overall_best_individual
-
+final$last_5_gen_fitness
+final$overall_best_fitness
+final$last_gen_best_fitness
+final$fitness_vec
 ## GLM: binomial family:
 # Create data:
 rows <- 1000

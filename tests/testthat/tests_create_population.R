@@ -1,7 +1,5 @@
-# load the source code of the functions to be tested
-source("initialization.R")
+source("../../initialization.R")
 
-# tests for the create_population function
 test_that("create_population works with integer type inputs: ", {
   chromosome_length <- 10.5
   population_size <- 4
@@ -20,5 +18,4 @@ test_that("create_population works with integer type inputs: ", {
   
   expect_error(create_population(chromosome_length, population_size),
                'chromosome_length and population_size must be positive integer values')
-  
 })

@@ -1,9 +1,6 @@
-# load the source code of the functions to be tested
-source("initialization.R")
+source("../../initialization.R")
 
-# tests for the get_fitness function
 test_that("get_fitness works with a target variable with name of string type and other non empty inputs: ", {
-  
   library(extraDistr)
   data <-  matrix(runif(100), ncol=10, nrow = 10)
   names(data) <- c("var1","var2","var3","var4","var5","var6","var7","var8","var9","var10")
@@ -31,5 +28,4 @@ test_that("get_fitness works with a target variable with name of string type and
   
   expect_error(get_fitness(data, name_y, generation),
                'the number of chromosomes must be equal to the number of columns of your data - 1')
-  
 })

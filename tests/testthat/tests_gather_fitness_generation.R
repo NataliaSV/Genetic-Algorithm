@@ -1,8 +1,6 @@
-# load the source code of the functions to be tested
-source("initialization.R")
+source("../../initialization.R")
 library(extraDistr)
 
-# tests for the gather_fitness_generation function
 test_that("gather_fitness_generation works with non empty, numeric inputs: ", {
   
   generation <- as.data.frame(NULL)

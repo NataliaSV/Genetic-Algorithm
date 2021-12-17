@@ -1,7 +1,5 @@
-# load the source code of the functions to be tested
-source("initialization.R")
+source("../../initialization.R")
 
-# tests for the find_genes function
 test_that("find_genes works with vector type inputs: ", {
   chromosome <- c()
   variable_names <- c(0,1,2)
