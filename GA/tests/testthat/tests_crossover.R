@@ -7,5 +7,4 @@ test_that("the output is a matrix and is the same size as the parent matrices
   expect_is(test_child, 'matrix')
   expect_true(nrow(test_child)==nrow(test_mat_A))
   expect_true(ncol(test_child)==ncol(test_mat_A))
-  expect_true(test_child == 1 || test_child == 0)
 })
