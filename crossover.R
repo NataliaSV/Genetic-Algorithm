@@ -10,7 +10,7 @@ generate_split_locations <- function(parents_A, parents_B, num_split = 1) {
                            nrow = nrow(parents_A), ncol = num_split)
   for (i in 1:nrow(parents_A)) {
     split_location[i,] <- sort(sample(1:(ncol(parents_A) - 1),
-                                      size = num_split, replace = F))
+                               size = num_split, replace = F))
   }
   split_location <- cbind(rep(0,nrow(parents_A)), split_location, 
                           rep(ncol(parents_A), nrow(parents_A)))

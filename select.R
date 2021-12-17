@@ -1,30 +1,26 @@
 ### STAT243 Group Project
 ### Select Function - Full Algorithm
 ### Jonathan Ling, Hans Bak Nielsen, Natalia Sarabia
-
-
 library(dplyr)
+library(here)
 
-# setwd(file.path('..','GA/'))
-
-source("initialization.R")
-source("parentSelection.R")
-source("crossover.R")
-source("mutation.R")
+source(here("initialization.R"))
+source(here("parent_selection.R"))
+source(here("crossover.R"))
+source(here("mutation.R"))
 
 ### Full algorithm
 
-main_algorithm <- function(data,
-                          chromosomes,
-                          predictor,
-                          FUN = AIC,
-                          minimize = TRUE,
-                          num_partitions = floor(population_size/3),
-                          genetic_operator = crossover,
-                          num_split = 1,
-                          mutate_probability = 0.01,
-                          ...
-                          ) {
+main_algorithm <- function(data, chromosomes,
+                           predictor,
+                           FUN = AIC,
+                           minimize = TRUE,
+                           num_partitions = floor(population_size/3),
+                           genetic_operator = crossover,
+                           num_split = 1,
+                           mutate_probability = 0.01,
+                           parent_selection = 'tournament',
+                           ...) {
   
   # Generate fitness scores and combine with chromosomes matrix
   fitness_scores <- get_fitness(data = data, 
@@ -40,23 +36,33 @@ main_algorithm <- function(data,
   fittest_parent <- my_generation_info[which.max(fitness_scores), 1:ncol(chromosomes)]
   highest_fitness <- my_generation_info[which.max(fitness_scores), ncol(chromosomes) + 1]
   
-  ## Create parents A and B
-  parents_A <- tournament_selection(as.matrix(my_generation_info), 
-                                    num_partitions)
-  # Run tournament selection multiple times to keep number of individuals the 
-  # same over each generation
-  for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
-    parents_A <- rbind(parents_A,
-      tournament_selection(as.matrix(my_generation_info), num_partitions))
-  }
-  
-  parents_B <- tournament_selection(as.matrix(my_generation_info), 
-                                    num_partitions)
-  
-  for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
-    parents_B <- rbind(parents_B,
-                      tournament_selection(as.matrix(my_generation_info), 
-                                           num_partitions))
+  ## Create parents A and B 
+  if (parent_selection == 'tournament') {
+    parents_A <- tournament_selection(as.matrix(my_generation_info), 
+                                      num_partitions, 
+                                      minimize = minimize)
+    # Run tournament selection multiple times to keep number of individuals the 
+    # same over each generation
+    for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
+      parents_A <- rbind(parents_A,
+        tournament_selection(as.matrix(my_generation_info), 
+                             num_partitions, 
+                             minimize = minimize))
+    }
+    
+    parents_B <- tournament_selection(as.matrix(my_generation_info), 
+                                      num_partitions, 
+                                      minimize = minimize)
+    
+    for(i in 1:floor(nrow(chromosomes) / num_partitions - 1)) {
+      parents_B <- rbind(parents_B,
+                        tournament_selection(as.matrix(my_generation_info), 
+                                             num_partitions,
+                                             minimize = minimize))
+    }
+  } else {
+    parents_A <- rank_selection(as.matrix(my_generation_info), minimize = minimize)
+    parents_B <- rank_selection(as.matrix(my_generation_info), minimize = minimize)
   }
   
   if (all.equal(genetic_operator, crossover)) {
@@ -87,23 +93,11 @@ main_algorithm <- function(data,
 #' @param minimize depending on the FUN, if the user wants to minimize or maximize it
 #' @param num_split number of splits in the crossover
 #' @param stop_criterion stops the algorithm when the last 5 generations vary by less than this percentage
+#' @param parent_selection which parent selection algorithm should be used. Can be: 'rank' or 'tournament'
 #' @param ... other parameters for the glm function, for instance, family.
 #' @return data frame with the population
 #' @examples
-#' chromosome_length <- 10
-#' x <- as.data.frame(matrix(runif(100*(chromosome_length+1),0,1),
-#' ncol=(chromosome_length+1),nrow=100))
-#' names(x) <- letters[1:(chromosome_length+1)]
-#'  select(chromosome_length = chromosome_length, 
-#'  data = round(x,0), 
-#'  response = "a", 
-#'  num_partitions = 15, 
-#'  genetic_operator = crossover, 
-#'  num_split = 3,
-#'  mutate_probability = 0.05,
-#'  stop_criterion = 0.03
-#'  FUN = BIC, family = binomial)
-#'  
+
 
 select <- function(data, 
                    chromosome_length = ncol(data) - 1, 
@@ -116,7 +110,8 @@ select <- function(data,
                    num_split = 1,
                    mutate_probability = 0.01,
                    stop_criterion = 0.05,
-                   ...) {
+                   parent_selection = 'tournament', ...) {
+                     
   # Keep track of number of iterations ran
   iteration_counter <- 0
   
@@ -141,6 +136,7 @@ select <- function(data,
                                   genetic_operator = genetic_operator, 
                                   num_split = num_split,
                                   mutate_probability = mutate_probability, 
+                                  parent_selection = parent_selection,
                                   ...)
     
     # Keep track of overall best fitness and genes
@@ -269,6 +265,3 @@ formula_last <- set_formulas(active_last, name_y = "a")
 # We obtain the same result for both
 abs(sum(BIC(glm(formula_overall, data = round(x,0), family = binomial)), final$overall_best_fitness)) < .Machine$double.eps
 abs(sum(BIC(glm(formula_last, data = round(x,0), family = binomial)), final$last_gen_best_fitness)) < .Machine$double.eps
-
-
-
