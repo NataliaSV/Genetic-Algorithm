@@ -1,0 +1,58 @@
+A-: Overall a nice job, with some limitations mentioned below.
+
+## ease of accessing package, help, tests:
+
+Good
+
+## main help page (select):
+
+Good description of arguments with two full examples. No description of algorithm.
+
+## quality of user interface (function arguments, flexibility):
+
+Use of a percentage for the stopping criterion might not work well for all datasets since the actual value of the objective function can vary quite a bit between datasets.
+
+Good user flexibility.
+
+No ability to set maximum number of iterations, which could be dangerous for larger models.
+
+Comprehensive output is provided. 
+
+## performance on my tests:
+
+performance on baseball known: found best model
+performance on baseball full: found an ok model, but not all that close to the best. Finds a good model if I make the stopping criterion more strict.
+performance on big-p: Finds a very good model if I make stopping criterion sufficiently strict.
+
+## testing
+
+Tests pass but there are four warnings.
+
+Testing somewhat limited - mainly of error trapping and correct output format. One test of result on real data, but not clear what best model in this case is.
+
+## writeup (including examples):
+
+Clear.
+
+I would have liked to see discussion of one or more examples in depth, with consideration of how your code performed relative to the known best model. The Titanic example is a good start, but you don't explore what model is the best, which can be done by exhaustive search.
+
+## code efficiency
+
+Fast on baseball example, in part because it stops after just five iterations.
+Quite fast on big GLM example, again in part because of limited number of iterations.
+
+## code organization/clarity/elegance:
+
+Reasonably easy to follow. Code could probably be more concise in some ways. 
+
+## code comments/formatting:
+
+Good.
+
+## parallelization:
+
+None
+
+## equality of workload:
+
+Good
